@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/sacloud/libsacloud/api"
+	"github.com/taroooyan/devsacloud/confirm"
 	"os"
 	"strings"
 	"time"
@@ -209,6 +210,8 @@ func main() {
 	}
 
 	if *del == true {
+		fmt.Println("Is is okay to delete this server?[y/N]")
+		confirm.AskForConfirmation()
 		delServer(serverID, diskID)
 		fmt.Println("serverID(", serverID, ") is DELETED")
 	}
