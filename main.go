@@ -164,16 +164,32 @@ func stopServer(serverID int64) {
 	}
 }
 
+func delServer(serverID int64, diskID int64) {
+	// authorize
+	client := api.NewClient(config.Token, config.Secret, config.Zone)
+
+	// disconnect the disk from the server
+	fmt.Println("disconnecting the disk")
+	client.Disk.DisconnectFromServer(diskID)
+
+	// delete the server
+	fmt.Println("deleting the server")
+	client.Server.Delete(serverID)
+
+	// delete the disk
+	fmt.Println("deleting the disk")
+	client.Disk.Delete(diskID)
+}
+
 func main() {
 	importConfig()
-
-	var boot = flag.Bool("boot", false, "boot option is server boot")
-	var stop = flag.Bool("stop", false, "stop")
-	// var del  = flag.Bool("delete", false, "delete")
-	var create = flag.Bool("create", false, "create")
-	flag.Parse()
-
 	serverID, ipaddress, diskID := findResource()
+
+	var boot = flag.Bool("boot", false, "boot server")
+	var stop = flag.Bool("stop", false, "stop server")
+	var del = flag.Bool("delete", false, "delete server")
+	var create = flag.Bool("create", false, "create new server")
+	flag.Parse()
 
 	if *create == true {
 		if serverID == 0 {
@@ -191,5 +207,11 @@ func main() {
 		stopServer(serverID)
 		fmt.Println("serverID(", serverID, ") is DOWN")
 	}
+
+	if *del == true {
+		delServer(serverID, diskID)
+		fmt.Println("serverID(", serverID, ") is DELETED")
+	}
+
 	fmt.Println(ipaddress, diskID)
 }
