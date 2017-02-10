@@ -21,3 +21,12 @@ sshPublicKey = "ssh-rsa AAAA..."
 ```
 
 ## Usege
+Usage of ./devsacloud:
+- -boot
+  boot server
+- -create
+  create new server
+- -delete
+  delete server
+- -stop
+  stop server
