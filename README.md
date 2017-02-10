@@ -22,11 +22,17 @@ sshPublicKey = "ssh-rsa AAAA..."
 
 ## Usege
 Usage of ./devsacloud:
-- -boot
+- -boot  
   boot server
-- -create
+- -create  
   create new server
-- -delete
+- -delete  
   delete server
-- -stop
+- -stop  
   stop server
+
+## TODO
+- Search server and disk form all zone
+- add to confilm when exec delete command
+- Show server plan and price
+- add ssh option to access server with ssh
