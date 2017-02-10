@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/sacloud/libsacloud/api"
@@ -42,6 +43,33 @@ func importConfig() {
 	if config.HostName == "" {
 		config.HostName = projectName
 	}
+}
+
+func findResource() (id int64, ipaddress string) {
+	// authorize
+	client := api.NewClient(config.Token, config.Secret, config.Zone)
+
+	// サーバーの検索
+	res, err := client.Server.
+		WithNameLike(config.HostName). // サーバー名に"server name"が含まれる
+		Offset(0).                     // 検索結果の位置0(先頭)から取得
+		Limit(5).                      // 5件取得
+		Include("Name").               // 結果にName列を含める
+		Include("Description").        // 結果にDescription列を含める
+		Include("Interfaces.IPAddress").
+		Find() // 検索実施
+
+	if err != nil {
+		panic(err)
+	}
+	// No matching
+	if res.Total == 0 {
+		return 0, "error"
+	}
+
+	id = res.Servers[0].Resource.ID
+	ipaddress = res.SakuraCloudResourceList.Servers[0].Interfaces[0].IPAddress
+	return
 }
 
 func createServer() {
@@ -109,33 +137,6 @@ func createServer() {
 	client.Disk.ConnectToServer(disk.ID, server.ID)
 }
 
-func findResource() (id int64, ipaddress string) {
-	// authorize
-	client := api.NewClient(config.Token, config.Secret, config.Zone)
-
-	// サーバーの検索
-	res, err := client.Server.
-		WithNameLike(config.HostName). // サーバー名に"server name"が含まれる
-		Offset(0).                     // 検索結果の位置0(先頭)から取得
-		Limit(5).                      // 5件取得
-		Include("Name").               // 結果にName列を含める
-		Include("Description").        // 結果にDescription列を含める
-		Include("Interfaces.IPAddress").
-		Find() // 検索実施
-
-	if err != nil {
-		panic(err)
-	}
-	// No matching
-	if res.Total == 0 {
-		return 0, "error"
-	}
-
-	id = res.Servers[0].Resource.ID
-	ipaddress = res.SakuraCloudResourceList.Servers[0].Interfaces[0].IPAddress
-	return
-}
-
 func bootServer(serverID int64) {
 	// authorize
 	client := api.NewClient(config.Token, config.Secret, config.Zone)
@@ -165,15 +166,29 @@ func stopServer(serverID int64) {
 func main() {
 	importConfig()
 
+	var boot = flag.Bool("boot", false, "boot option is server boot")
+	var stop = flag.Bool("stop", false, "stop")
+	// var del  = flag.Bool("delete", false, "delete")
+	var create = flag.Bool("create", false, "create")
+	flag.Parse()
+
 	serverID, ipaddress := findResource()
 
-	if serverID == 0 {
-		createServer()
-		serverID, ipaddress = findResource()
+	if *create == true {
+		if serverID == 0 {
+			createServer()
+			serverID, ipaddress = findResource()
+		}
 	}
-	bootServer(serverID)
 
-	fmt.Println("serverID is", serverID)
-	fmt.Println(ipaddress, "is UP")
-	// stopServer(findResource(projectName))
+	if *boot == true {
+		bootServer(serverID)
+		fmt.Println("serverID(", serverID, ") is UP")
+	}
+
+	if *stop == true {
+		stopServer(serverID)
+		fmt.Println("serverID(", serverID, ") is DOWN")
+	}
+	fmt.Println(ipaddress)
 }
