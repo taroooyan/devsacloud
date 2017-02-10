@@ -1,6 +1,6 @@
-token        = ""
-secret       = ""
-zone         = ""
+token        = "TOKEN"
+secret       = "SECRET"
+zone         = "tk1a" # tk1a, is1a, is1b
 # if name is directory name, don't have to set name
 name         = "libsacloud demo"
 description  = "libsacloud demo description"
