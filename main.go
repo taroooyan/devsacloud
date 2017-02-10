@@ -42,7 +42,6 @@ func importConfig() {
 	if config.HostName == "" {
 		config.HostName = projectName
 	}
-	fmt.Println(config)
 }
 
 func createServer() {
@@ -99,8 +98,6 @@ func createServer() {
 	}
 
 	// config the disk
-
-	// config the disk
 	diskConf := client.Disk.NewCondig()
 	diskConf.SetHostName(config.HostName)
 	diskConf.SetPassword(config.Password)
@@ -110,9 +107,6 @@ func createServer() {
 
 	// connect to server
 	client.Disk.ConnectToServer(disk.ID, server.ID)
-
-	// boot
-	bootServer(server.ID)
 }
 
 func findResource() (id int64, ipaddress string) {
@@ -173,12 +167,12 @@ func main() {
 
 	serverID, ipaddress := findResource()
 
-	if serverID != 0 {
-		bootServer(serverID)
-	} else {
+	if serverID == 0 {
 		createServer()
 		serverID, ipaddress = findResource()
 	}
+	bootServer(serverID)
+
 	fmt.Println("serverID is", serverID)
 	fmt.Println(ipaddress, "is UP")
 	// stopServer(findResource(projectName))
