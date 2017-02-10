@@ -45,7 +45,7 @@ func importConfig() {
 	}
 }
 
-func findResource() (id int64, ipaddress string) {
+func findResource() (serverID int64, ipaddress string, diskID int64) {
 	// authorize
 	client := api.NewClient(config.Token, config.Secret, config.Zone)
 
@@ -57,6 +57,7 @@ func findResource() (id int64, ipaddress string) {
 		Include("Name").               // 結果にName列を含める
 		Include("Description").        // 結果にDescription列を含める
 		Include("Interfaces.IPAddress").
+		Include("Disks").
 		Find() // 検索実施
 
 	if err != nil {
@@ -64,11 +65,11 @@ func findResource() (id int64, ipaddress string) {
 	}
 	// No matching
 	if res.Total == 0 {
-		return 0, "error"
+		return 0, "error", 0
 	}
-
-	id = res.Servers[0].Resource.ID
+	serverID = res.Servers[0].Resource.ID
 	ipaddress = res.SakuraCloudResourceList.Servers[0].Interfaces[0].IPAddress
+	diskID = res.SakuraCloudResourceList.Servers[0].Disks[0].Resource.ID
 	return
 }
 
@@ -172,12 +173,12 @@ func main() {
 	var create = flag.Bool("create", false, "create")
 	flag.Parse()
 
-	serverID, ipaddress := findResource()
+	serverID, ipaddress, diskID := findResource()
 
 	if *create == true {
 		if serverID == 0 {
 			createServer()
-			serverID, ipaddress = findResource()
+			serverID, ipaddress, diskID = findResource()
 		}
 	}
 
@@ -190,5 +191,5 @@ func main() {
 		stopServer(serverID)
 		fmt.Println("serverID(", serverID, ") is DOWN")
 	}
-	fmt.Println(ipaddress)
+	fmt.Println(ipaddress, diskID)
 }
