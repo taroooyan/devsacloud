@@ -37,5 +37,5 @@ Usage of ./devsacloud:
 - Show server plan and price
 - add ssh option to access server with ssh
 
-## LICENCE
+## LICENSE
 MIT
