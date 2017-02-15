@@ -36,3 +36,6 @@ Usage of ./devsacloud:
 - add to confilm when exec delete command
 - Show server plan and price
 - add ssh option to access server with ssh
+
+## LICENCE
+MIT
