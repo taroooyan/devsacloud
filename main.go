@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/sacloud/libsacloud/api"
-	"github.com/taroooyan/devsacloud/confirm"
+	"github.com/taroooyan/confirm"
 	"os"
 	"strings"
 	"time"
