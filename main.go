@@ -210,10 +210,11 @@ func main() {
 	}
 
 	if *del == true {
-		fmt.Println("Is is okay to delete this server?[y/N]")
-		confirm.AskConfirm()
-		delServer(serverID, diskID)
-		fmt.Println("serverID(", serverID, ") is DELETED")
+		message := "Is is okay to delete this server?[y/n]"
+		if confirm.AskConfirm(message) {
+			delServer(serverID, diskID)
+			fmt.Println("serverID(", serverID, ") is DELETED")
+		}
 	}
 
 	fmt.Println(ipaddress, diskID)
