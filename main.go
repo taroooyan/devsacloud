@@ -190,6 +190,7 @@ func main() {
 	var stop = flag.Bool("stop", false, "stop server")
 	var del = flag.Bool("delete", false, "delete server")
 	var create = flag.Bool("create", false, "create new server")
+	var show = flag.Bool("show", false, "show server")
 	flag.Parse()
 
 	if *create == true {
@@ -215,6 +216,9 @@ func main() {
 			delServer(serverID, diskID)
 			fmt.Println("serverID(", serverID, ") is DELETED")
 		}
+	}
+
+	if *show == true {
 	}
 
 	fmt.Println(ipaddress, diskID)
