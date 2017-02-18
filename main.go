@@ -25,6 +25,12 @@ type Config struct {
 	SshPublicKey string `toml:"sshPublicKey"`
 }
 
+type Server struct {
+	ServerId  int64
+	Ipaddress string
+	DiskId    int64
+}
+
 var config Config
 
 func importConfig() {
@@ -46,7 +52,7 @@ func importConfig() {
 	}
 }
 
-func findResource() (serverID int64, ipaddress string, diskID int64) {
+func findResource() (server Server) {
 	// authorize
 	client := api.NewClient(config.Token, config.Secret, config.Zone)
 
@@ -66,11 +72,11 @@ func findResource() (serverID int64, ipaddress string, diskID int64) {
 	}
 	// No matching
 	if res.Total == 0 {
-		return 0, "error", 0
+		return
 	}
-	serverID = res.Servers[0].Resource.ID
-	ipaddress = res.SakuraCloudResourceList.Servers[0].Interfaces[0].IPAddress
-	diskID = res.SakuraCloudResourceList.Servers[0].Disks[0].Resource.ID
+	server.ServerId = res.Servers[0].Resource.ID
+	server.Ipaddress = res.SakuraCloudResourceList.Servers[0].Interfaces[0].IPAddress
+	server.DiskId = res.SakuraCloudResourceList.Servers[0].Disks[0].Resource.ID
 	return
 }
 
@@ -184,7 +190,7 @@ func delServer(serverID int64, diskID int64) {
 
 func main() {
 	importConfig()
-	serverID, ipaddress, diskID := findResource()
+	server := findResource()
 
 	var boot = flag.Bool("boot", false, "boot server")
 	var stop = flag.Bool("stop", false, "stop server")
@@ -194,32 +200,32 @@ func main() {
 	flag.Parse()
 
 	if *create == true {
-		if serverID == 0 {
+		if server.ServerId == 0 {
 			createServer()
-			serverID, ipaddress, diskID = findResource()
+			server = findResource()
 		}
 	}
 
 	if *boot == true {
-		bootServer(serverID)
-		fmt.Println("serverID(", serverID, ") is UP")
+		bootServer(server.ServerId)
+		fmt.Println("serverID(", server.ServerId, ") is UP")
 	}
 
 	if *stop == true {
-		stopServer(serverID)
-		fmt.Println("serverID(", serverID, ") is DOWN")
+		stopServer(server.ServerId)
+		fmt.Println("serverID(", server.ServerId, ") is DOWN")
 	}
 
 	if *del == true {
 		message := "Is is okay to delete this server?[y/n]"
 		if confirm.AskConfirm(message) {
-			delServer(serverID, diskID)
-			fmt.Println("serverID(", serverID, ") is DELETED")
+			delServer(server.ServerId, server.DiskId)
+			fmt.Println("serverID(", server.ServerId, ") is DELETED")
 		}
 	}
 
 	if *show == true {
 	}
 
-	fmt.Println(ipaddress, diskID)
+	fmt.Println(server.Ipaddress, server.DiskId)
 }
