@@ -145,47 +145,47 @@ func createServer() {
 	client.Disk.ConnectToServer(disk.ID, server.ID)
 }
 
-func bootServer(serverID int64) {
+func bootServer(serverId int64) {
 	// authorize
 	client := api.NewClient(config.Token, config.Secret, config.Zone)
 
 	// boot
 	fmt.Println("booting the server")
-	client.Server.Boot(serverID)
+	client.Server.Boot(serverId)
 }
 
-func stopServer(serverID int64) {
+func stopServer(serverId int64) {
 	// authorize
 	client := api.NewClient(config.Token, config.Secret, config.Zone)
 
 	// stop
 	time.Sleep(3 * time.Second)
 	fmt.Println("stopping the server")
-	client.Server.Stop(serverID)
+	client.Server.Stop(serverId)
 
 	// wait for server to down
-	err := client.Server.SleepUntilDown(serverID, 120*time.Second)
+	err := client.Server.SleepUntilDown(serverId, 120*time.Second)
 	if err != nil {
 		fmt.Println("failed")
 		os.Exit(1)
 	}
 }
 
-func delServer(serverID int64, diskID int64) {
+func delServer(serverId int64, diskId int64) {
 	// authorize
 	client := api.NewClient(config.Token, config.Secret, config.Zone)
 
 	// disconnect the disk from the server
 	fmt.Println("disconnecting the disk")
-	client.Disk.DisconnectFromServer(diskID)
+	client.Disk.DisconnectFromServer(diskId)
 
 	// delete the server
 	fmt.Println("deleting the server")
-	client.Server.Delete(serverID)
+	client.Server.Delete(serverId)
 
 	// delete the disk
 	fmt.Println("deleting the disk")
-	client.Disk.Delete(diskID)
+	client.Disk.Delete(diskId)
 }
 
 func main() {
