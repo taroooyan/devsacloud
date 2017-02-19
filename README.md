@@ -30,10 +30,11 @@ Usage of ./devsacloud:
   delete server
 - -stop  
   stop server
+- -show
+- show server info
 
 ## TODO
 - Search server and disk form all zone
-- add to confilm when exec delete command
 - Show server plan and price
 - add ssh option to access server with ssh
 
