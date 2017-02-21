@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"syscall"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 func main() {
@@ -30,27 +32,29 @@ func main() {
 
 	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
 		session.Close()
-    return
-  }
+		return
+	}
 
-  session.Stdout = os.Stdout
-  session.Stderr = os.Stderr
-  session.Stdin = os.Stdin
-  session.Run("bash")
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
+	session.Stdin = os.Stdin
+	session.Run("bash")
 
 	defer client.Close()
 }
 
 func connectToHost(user, host string) (*ssh.Client, *ssh.Session, error) {
-	var pass string
 	fmt.Print("Password: ")
-	fmt.Scanf("%s\n", &pass)
+	pass, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	sshConfig := &ssh.ClientConfig{
 		User: user,
 		Auth: []ssh.AuthMethod{
-      ssh.Password(pass),
-    },
+			ssh.Password(string(pass)),
+		},
 	}
 
 	client, err := ssh.Dial("tcp", host, sshConfig)
