@@ -230,16 +230,30 @@ func main() {
 	}
 
 	if *ssh == true {
-		access("root", server.Ipaddress+":22", config.Password)
+		connectToHost("root", server.Ipaddress+":22", config.Password)
 	}
 
 	fmt.Println(server.Ipaddress, server.DiskId)
 }
 
-func access(user, host, password string) {
-	client, session, err := connectToHost(user, host, password)
+func connectToHost(user, host, password string) {
+
+	sshConfig := &ssh.ClientConfig{
+		User: user,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(password),
+		},
+	}
+
+	client, err := ssh.Dial("tcp", host, sshConfig)
 	if err != nil {
-		panic(err)
+		return
+	}
+
+	session, err := client.NewSession()
+	if err != nil {
+		client.Close()
+		return
 	}
 	defer client.Close()
 
@@ -259,32 +273,4 @@ func access(user, host, password string) {
 	session.Stdin = os.Stdin
 	session.Run("bash")
 	defer session.Close()
-}
-
-func connectToHost(user, host, password string) (*ssh.Client, *ssh.Session, error) {
-	// fmt.Print("Password: ")
-	// pass, err := terminal.ReadPassword(int(syscall.Stdin))
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	sshConfig := &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
-	}
-
-	client, err := ssh.Dial("tcp", host, sshConfig)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	session, err := client.NewSession()
-	if err != nil {
-		client.Close()
-		return nil, nil, err
-	}
-
-	return client, session, nil
 }
