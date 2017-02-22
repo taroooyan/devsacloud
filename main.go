@@ -6,6 +6,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/sacloud/libsacloud/api"
 	"github.com/taroooyan/confirm"
+	"golang.org/x/crypto/ssh"
 	"os"
 	"strings"
 	"time"
@@ -197,6 +198,7 @@ func main() {
 	var del = flag.Bool("delete", false, "delete server")
 	var create = flag.Bool("create", false, "create new server")
 	var show = flag.Bool("show", false, "show server")
+	var ssh = flag.Bool("ssh", false, "ssh connect server")
 	flag.Parse()
 
 	if *create == true {
@@ -227,5 +229,61 @@ func main() {
 	if *show == true {
 	}
 
+	if *ssh == true {
+		access("root", server.Ipaddress+":22", config.Password)
+	}
+
 	fmt.Println(server.Ipaddress, server.DiskId)
+}
+
+func access(user, host, password string) {
+	client, session, err := connectToHost(user, host, password)
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close()
+
+	modes := ssh.TerminalModes{
+		// ssh.ECHO:          0,     // disable echoing
+		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
+		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
+	}
+
+	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
+		session.Close()
+		return
+	}
+
+	// session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
+	session.Stdin = os.Stdin
+	session.Run("bash")
+}
+
+func connectToHost(user, host, password string) (*ssh.Client, *ssh.Session, error) {
+	// fmt.Print("Password: ")
+	// pass, err := terminal.ReadPassword(int(syscall.Stdin))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	sshConfig := &ssh.ClientConfig{
+		User: user,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(password),
+		},
+	}
+
+	client, err := ssh.Dial("tcp", host, sshConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	session, err := client.NewSession()
+	if err != nil {
+		client.Close()
+		return nil, nil, err
+	}
+
+	return client, session, nil
 }
