@@ -254,10 +254,11 @@ func access(user, host, password string) {
 		return
 	}
 
-	// session.Stdout = os.Stdout
+	session.Stdout = os.Stdout
 	session.Stderr = os.Stderr
 	session.Stdin = os.Stdin
 	session.Run("bash")
+	defer session.Close()
 }
 
 func connectToHost(user, host, password string) (*ssh.Client, *ssh.Session, error) {
