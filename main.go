@@ -175,6 +175,45 @@ func delServer(client *api.Client, serverId int64, diskId int64) {
 	client.Disk.Delete(diskId)
 }
 
+func connectToHost(user, host, port, password string) {
+
+	sshConfig := &ssh.ClientConfig{
+		User: user,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(password),
+		},
+	}
+
+	client, err := ssh.Dial("tcp", host+":"+port, sshConfig)
+	if err != nil {
+		return
+	}
+
+	session, err := client.NewSession()
+	if err != nil {
+		client.Close()
+		return
+	}
+	defer client.Close()
+
+	modes := ssh.TerminalModes{
+		// ssh.ECHO:          0,     // disable echoing
+		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
+		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
+	}
+
+	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
+		session.Close()
+		return
+	}
+
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
+	session.Stdin = os.Stdin
+	session.Run("bash")
+	defer session.Close()
+}
+
 func main() {
 	importConfig()
 
@@ -225,43 +264,4 @@ func main() {
 	}
 
 	fmt.Println(server.Ipaddress, server.DiskId)
-}
-
-func connectToHost(user, host, port, password string) {
-
-	sshConfig := &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
-	}
-
-	client, err := ssh.Dial("tcp", host+":"+port, sshConfig)
-	if err != nil {
-		return
-	}
-
-	session, err := client.NewSession()
-	if err != nil {
-		client.Close()
-		return
-	}
-	defer client.Close()
-
-	modes := ssh.TerminalModes{
-		// ssh.ECHO:          0,     // disable echoing
-		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
-		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
-	}
-
-	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
-		session.Close()
-		return
-	}
-
-	session.Stdout = os.Stdout
-	session.Stderr = os.Stderr
-	session.Stdin = os.Stdin
-	session.Run("bash")
-	defer session.Close()
 }
