@@ -53,9 +53,7 @@ func importConfig() {
 	}
 }
 
-func findResource() (server Server) {
-	// authorize
-	client := api.NewClient(config.Token, config.Secret, config.Zone)
+func findResource(client *api.Client) (server Server) {
 
 	// サーバーの検索
 	res, err := client.Server.
@@ -81,10 +79,7 @@ func findResource() (server Server) {
 	return
 }
 
-func createServer() {
-	// authorize
-	client := api.NewClient(config.Token, config.Secret, config.Zone)
-
+func createServer(client *api.Client) {
 	// search archives
 	fmt.Println("searching archives")
 	archive, _ := client.Archive.FindLatestStableCentOS()
@@ -146,19 +141,13 @@ func createServer() {
 	client.Disk.ConnectToServer(disk.ID, server.ID)
 }
 
-func bootServer(serverId int64) {
-	// authorize
-	client := api.NewClient(config.Token, config.Secret, config.Zone)
-
+func bootServer(client *api.Client, serverId int64) {
 	// boot
 	fmt.Println("booting the server")
 	client.Server.Boot(serverId)
 }
 
-func stopServer(serverId int64) {
-	// authorize
-	client := api.NewClient(config.Token, config.Secret, config.Zone)
-
+func stopServer(client *api.Client, serverId int64) {
 	// stop
 	time.Sleep(3 * time.Second)
 	fmt.Println("stopping the server")
@@ -172,10 +161,7 @@ func stopServer(serverId int64) {
 	}
 }
 
-func delServer(serverId int64, diskId int64) {
-	// authorize
-	client := api.NewClient(config.Token, config.Secret, config.Zone)
-
+func delServer(client *api.Client, serverId int64, diskId int64) {
 	// disconnect the disk from the server
 	fmt.Println("disconnecting the disk")
 	client.Disk.DisconnectFromServer(diskId)
@@ -191,7 +177,11 @@ func delServer(serverId int64, diskId int64) {
 
 func main() {
 	importConfig()
-	server := findResource()
+
+	// authorize
+	client := api.NewClient(config.Token, config.Secret, config.Zone)
+
+	server := findResource(client)
 
 	var boot = flag.Bool("boot", false, "boot server")
 	var stop = flag.Bool("stop", false, "stop server")
@@ -203,25 +193,25 @@ func main() {
 
 	if *create == true {
 		if server.ServerId == 0 {
-			createServer()
-			server = findResource()
+			createServer(client)
+			server = findResource(client)
 		}
 	}
 
 	if *boot == true {
-		bootServer(server.ServerId)
+		bootServer(client, server.ServerId)
 		fmt.Println("serverID(", server.ServerId, ") is UP")
 	}
 
 	if *stop == true {
-		stopServer(server.ServerId)
+		stopServer(client, server.ServerId)
 		fmt.Println("serverID(", server.ServerId, ") is DOWN")
 	}
 
 	if *del == true {
 		message := "Is is okay to delete this server?[y/n]"
 		if confirm.AskConfirm(message) {
-			delServer(server.ServerId, server.DiskId)
+			delServer(client, server.ServerId, server.DiskId)
 			fmt.Println("serverID(", server.ServerId, ") is DELETED")
 		}
 	}
