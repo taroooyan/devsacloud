@@ -230,6 +230,7 @@ func main() {
 	}
 
 	if *ssh == true {
+		fmt.Println("Conneting", server.Ipaddress)
 		connectToHost("root", server.Ipaddress, "22", config.Password)
 	}
 
@@ -245,7 +246,7 @@ func connectToHost(user, host, port, password string) {
 		},
 	}
 
-  client, err := ssh.Dial("tcp", host + ":" + port, sshConfig)
+	client, err := ssh.Dial("tcp", host+":"+port, sshConfig)
 	if err != nil {
 		return
 	}
