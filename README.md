@@ -39,7 +39,7 @@ Usage of ./devsacloud:
   stop server
 - -show  
   show server info
-- -ssh
+- -ssh  
   connect to crating server
 
 
